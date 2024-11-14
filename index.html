@@ -1,81 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern AI Chatbot</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f5f6fa; margin: 0; padding: 0; }
-        #chat-container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        #chat-box { height: 400px; overflow-y: auto; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px; }
-        .chat-message { display: flex; margin-bottom: 15px; }
-        .chat-message .user { background-color: #4caf50; color: #fff; padding: 10px 15px; border-radius: 15px; max-width: 70%; }
-        .chat-message .ai { background-color: #e3e4e8; color: #333; padding: 10px 15px; border-radius: 15px; max-width: 70%; margin-left: 30px; }
-        #input-container { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; }
-        #user-input { width: 85%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
-        #send-btn { width: 12%; padding: 10px; background-color: #4caf50; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
-        #send-btn:hover { background-color: #45a049; }
-        .loading { font-size: 16px; color: #aaa; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f4f4f9; }
+    .chat-container { width: 400px; max-width: 100%; background: #ffffff; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); overflow: hidden; }
+    .chat-window { padding: 20px; height: 400px; overflow-y: auto; display: flex; flex-direction: column; }
+    .chat-bubble { margin: 10px 0; padding: 10px 15px; border-radius: 5px; max-width: 80%; }
+    .user-message { background: #007bff; color: white; align-self: flex-end; }
+    .bot-message { background: #e0e0e0; color: black; align-self: flex-start; }
+    .input-container { display: flex; padding: 10px; border-top: 1px solid #ddd; }
+    .input-container input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px; }
+    .input-container button { margin-left: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  </style>
 </head>
 <body>
 
-<div id="chat-container">
-    <div id="chat-box"></div>
-    <div id="input-container">
-        <input type="text" id="user-input" placeholder="Ask me anything...">
-        <button id="send-btn">Send</button>
-    </div>
+<div class="chat-container">
+  <div class="chat-window" id="chat-window"></div>
+  <div class="input-container">
+    <input type="text" id="user-input" placeholder="Type your message here..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
 </div>
 
 <script>
-    const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
+  const API_URL = 'https://api.x.ai/v1/chat/completions';
+  const API_KEY = 'xai-NIsyfBNqbMguUedMYOCuvMfBxf4XVH5Sbf4bvzNoCfuoHKMQCitVmy1nibtwRz90hA3TEtsLi3DttQWN';
 
-    sendBtn.addEventListener('click', () => {
-        const inputText = userInput.value;
-        if(inputText.trim() !== "") {
-            addMessage(inputText, 'user');
-            getAIResponse(inputText);
-            userInput.value = "";
-        }
-    });
+  async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    if (!message) return;
 
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendBtn.click();
-        }
-    });
+    addMessageToChat(message, 'user-message');
+    input.value = '';
+    
+    const response = await getAIResponse(message);
+    addMessageToChat(response, 'bot-message');
+  }
 
-    function addMessage(text, sender) {
-        const message = document.createElement('div');
-        message.classList.add('chat-message');
-        const messageContent = document.createElement('div');
-        messageContent.classList.add(sender);
-        messageContent.textContent = text;
-        message.appendChild(messageContent);
-        chatBox.appendChild(message);
-        chatBox.scrollTop = chatBox.scrollHeight;
+  async function getAIResponse(userMessage) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: 'You are a test assistant.' },
+            { role: 'user', content: userMessage }
+          ],
+          model: 'grok-beta',
+          stream: false,
+          temperature: 0
+        })
+      });
+      
+      const data = await response.json();
+      return data.result[0].response || 'Error: No response from AI';
+    } catch (error) {
+      console.error('Error:', error);
+      return 'Error: Failed to fetch response from API';
     }
+  }
 
-    function getAIResponse(userText) {
-        const apiUrl = `https://api.kastg.xyz/api/ai/llamaV3?prompt=${encodeURIComponent(userText)}`;
-        addMessage('Loading...', 'loading');
-
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                chatBox.querySelector('.loading').remove();
-                const aiResponse = data.result[0].response;
-                addMessage(aiResponse, 'ai');
-            })
-            .catch(error => {
-                chatBox.querySelector('.loading').remove();
-                addMessage('Sorry, something went wrong. Please try again later.', 'ai');
-            });
-    }
+  function addMessageToChat(message, className) {
+    const chatWindow = document.getElementById('chat-window');
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${className}`;
+    bubble.innerText = message;
+    chatWindow.appendChild(bubble);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
 </script>
 
 </body>
