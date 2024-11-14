@@ -6,75 +6,17 @@
     <title>Modern AI Chatbot</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f6fa;
-            margin: 0;
-            padding: 0;
-        }
-        #chat-container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        #chat-box {
-            height: 400px;
-            overflow-y: auto;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .chat-message {
-            display: flex;
-            margin-bottom: 15px;
-        }
-        .chat-message .user {
-            background-color: #4caf50;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 15px;
-            max-width: 70%;
-        }
-        .chat-message .ai {
-            background-color: #e3e4e8;
-            color: #333;
-            padding: 10px 15px;
-            border-radius: 15px;
-            max-width: 70%;
-            margin-left: 30px;
-        }
-        #input-container {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            align-items: center;
-        }
-        #user-input {
-            width: 85%;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-        }
-        #send-btn {
-            width: 12%;
-            padding: 10px;
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        #send-btn:hover {
-            background-color: #45a049;
-        }
-        .loading {
-            font-size: 16px;
-            color: #aaa;
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: #f5f6fa; margin: 0; padding: 0; }
+        #chat-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        #chat-box { height: 400px; overflow-y: auto; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px; }
+        .chat-message { display: flex; margin-bottom: 15px; }
+        .chat-message .user { background-color: #4caf50; color: #fff; padding: 10px 15px; border-radius: 15px; max-width: 70%; }
+        .chat-message .ai { background-color: #e3e4e8; color: #333; padding: 10px 15px; border-radius: 15px; max-width: 70%; margin-left: 30px; }
+        #input-container { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; }
+        #user-input { width: 85%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
+        #send-btn { width: 12%; padding: 10px; background-color: #4caf50; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
+        #send-btn:hover { background-color: #45a049; }
+        .loading { font-size: 16px; color: #aaa; }
     </style>
 </head>
 <body>
@@ -95,15 +37,15 @@
     sendBtn.addEventListener('click', () => {
         const inputText = userInput.value;
         if(inputText.trim() !== "") {
-            addMessage(inputText, 'user'); // Add user message to chat
+            addMessage(inputText, 'user');
             getAIResponse(inputText);
-            userInput.value = ""; // Clear input after sending
+            userInput.value = "";
         }
     });
 
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            sendBtn.click(); // Trigger send on Enter key press
+            sendBtn.click();
         }
     });
 
@@ -115,24 +57,22 @@
         messageContent.textContent = text;
         message.appendChild(messageContent);
         chatBox.appendChild(message);
-        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function getAIResponse(userText) {
         const apiUrl = `https://api.kastg.xyz/api/ai/llamaV3?prompt=${encodeURIComponent(userText)}`;
-
-        // Add loading message
         addMessage('Loading...', 'loading');
 
         fetch(apiUrl)
             .then(response => response.json())
             .then(data => {
-                const jsonResponse = JSON.stringify(data, null, 2); // Convert JSON to string and format it
-                chatBox.querySelector('.loading').remove(); // Remove the loading message
-                addMessage(jsonResponse, 'ai'); // Add full JSON response
+                chatBox.querySelector('.loading').remove();
+                const aiResponse = data.result[0].response;
+                addMessage(aiResponse, 'ai');
             })
             .catch(error => {
-                chatBox.querySelector('.loading').remove(); // Remove loading message on error
+                chatBox.querySelector('.loading').remove();
                 addMessage('Sorry, something went wrong. Please try again later.', 'ai');
             });
     }
